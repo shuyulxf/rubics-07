@@ -15,9 +15,12 @@ function CountryList() {
     );
 
   const countries = cities.reduce((arr, city) => {
-    if (!arr.map((el) => el.country).includes(city.country))
-      return [...arr, { country: city.country, emoji: city.emoji }];
-    else return arr;
+    const existingCountry = arr.find((el) => el.country === city.country);
+    if (existingCountry) {
+      existingCountry.count += 1;
+      return arr;
+    }
+    return [...arr, { country: city.country, emoji: city.emoji, count: 1 }];
   }, []);
 
   return (

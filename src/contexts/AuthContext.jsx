@@ -39,20 +39,32 @@ function reducer(state, action) {
 export default function AuthProvider({ children }) {
   const [{ user, error }, dispatch] = useReducer(reducer, initialState);
 
+  async function authRequest(endpoint, body, errorMessage) {
+    const res = await fetch(`${SERVER_URL}/api/auth/${endpoint}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || errorMessage);
+    }
+
+    return data;
+  }
+
   async function login(email, password) {
     try {
-      const res = await fetch(`${SERVER_URL}/api/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.message || "Login failed");
+      const data = await authRequest(
+        "login",
+        { email, password },
+        "Login failed"
+      );
 
       localStorage.setItem("user", JSON.stringify(data.user));
 
@@ -68,18 +80,11 @@ export default function AuthProvider({ children }) {
 
   async function register(username, email, password) {
     try {
-      const res = await fetch(`${SERVER_URL}/api/auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ username, email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.message || "Registration failed");
+      const data = await authRequest(
+        "register",
+        { username, email, password },
+        "Registration failed"
+      );
 
       localStorage.setItem("user", JSON.stringify(data.user));
 
